@@ -5,10 +5,15 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "aws --region ap-southeast-2 --profile banana-doge s3 sync ./dist s3://shopping-list-bucket-bananadoge --delete"
   },
   "dependencies": {
+    "@vue/composition-api": "^1.0.0-rc.11",
     "core-js": "^3.6.5",
+    "primeflex": "^2.0.0",
+    "primeicons": "^4.1.0",
+    "primevue": "^3.5.0",
     "vue": "^3.0.0"
   },
   "devDependencies": {
