@@ -1,11 +1,11 @@
 <template>
-  <form id="shopping-list">
+  <form id="shopping-list" v-show="!isLoading">
     <h2>Shopping List</h2>
     <table id="shopping-list-table" class="table table-condensed table-hover">
       <thead>
       <tr>
+        <th>Item Name</th>
         <th>Quantity</th>
-        <th>Item</th>
         <th>Actions</th>
       </tr>
       </thead>
@@ -13,12 +13,12 @@
 
       <tr v-for="(item, index) in itemsList" v-bind:key="item">
         <td>
-          <span v-show="!item.inEditMode">{{ item.quantity }}</span>
-          <input type="number" v-bind:placeholder="item.quantity" v-show="item.inEditMode" v-model="item.quantity"/>
+          <span v-show="!item.inEditMode">{{ item.name }}</span>
+          <input v-bind:placeholder="item.name" v-show="item.inEditMode" v-model="item.name"/>
         </td>
         <td>
-          <span v-show="!item.inEditMode">{{ item.itemName }}</span>
-          <input v-bind:placeholder="item.itemName" v-show="item.inEditMode" v-model="item.itemName"/>
+          <span v-show="!item.inEditMode">{{ item.quantity }}</span>
+          <input type="number" v-bind:placeholder="item.quantity" v-show="item.inEditMode" v-model="item.quantity"/>
         </td>
         <td>
           <Button icon="pi pi-check" class=" p-button-rounded p-button-success p-button-outlined" type="button"
@@ -35,26 +35,28 @@
     <h4>Add new item</h4>
     <div class="p-grid" style="width: 50%;    margin-left: auto;
     margin-right: auto;">
-      <div class="p-col-2 p-sm-6" style="width: 5rem">
-        Quantity
-      </div>
-      <div class="p-col-3 p-sm-6" style="width: calc(50% - 5rem)">
-        <input type="number" v-model="quantity" class="checkbox" autofocus>
-      </div>
       <div class="p-col-3 p-sm-6" style="width: 5rem">
         Name
       </div>
       <div class="p-col-3 p-sm-6" style="width: calc(50% - 5rem)">
         <input type="text" v-model="itemName" class="checkbox">
       </div>
+      <div class="p-col-2 p-sm-6" style="width: 5rem">
+        Quantity
+      </div>
+      <div class="p-col-3 p-sm-6" style="width: calc(50% - 5rem)">
+        <input type="number" v-model="quantity" class="checkbox" autofocus>
+      </div>
     </div>
     <div>
       <Button label="Submit" @click="addItem" icon="pi pi-check" iconPos="left" style="margin-top: 1rem"/>
     </div>
   </form>
+  <ProgressSpinner v-show="isLoading"/>
 </template>
 
 <script>
+import axios from 'axios'
 
 export default {
   name: 'ShoppingList',
@@ -63,31 +65,49 @@ export default {
     return {
       quantity: '',
       itemName: '',
-      itemsList: [
-        {
-          quantity: 3,
-          itemName: 'Apples',
-          inEditMode: false
-        },
-        {
-          quantity: 6,
-          itemName: 'Pears',
-          inEditMode: false
-
-        }],
-      inEditMode: false
+      itemsList: [],
+      inEditMode: false,
+      isLoading: false
     }
   },
   methods: {
-    addItem: function () {
-      var quantityIN = this.quantity
-      var itemNameIN = this.itemName.trim()
-      this.itemsList.push({
-        quantity: quantityIN,
-        itemName: itemNameIN,
-        inEditMode: false
+    getItemList: async function () {
+      this.isLoading = true
+      axios.get('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items').then(response => {
+        this.itemsList = []
+        for (const item of response?.data?.Items) {
+          item.inEditMode = false
+          this.itemsList.push(
+            item
+          )
+        }
+        this.isLoading = false
+      }).catch(e => {
+        this.isLoading = false
       })
-      this.clearAll()
+    },
+    addItem: function () {
+      const quantityIN = this.quantity
+      const itemNameIN = this.itemName.trim()
+      if (quantityIN && itemNameIN) {
+        this.isLoading = true
+        axios.post('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items', {
+          name: itemNameIN,
+          quantity: quantityIN
+        }, {
+          headers: {
+            'Access-Control-Request-Headers': 'accept, origin, content-type',
+            'Access-Control-Request-Method': 'GET, POST, OPTIONS, PUT, DELETE'
+          }
+        }).then(response => {
+          this.getItemList()
+          this.clearAll()
+        }).catch(e => {
+          this.isLoading = false
+        })
+      } else {
+
+      }
     },
     clearQuantity: function () {
       this.quantity = ''
@@ -100,14 +120,41 @@ export default {
       this.clearItemName()
     },
     removeItem: function (index) {
-      this.itemsList.splice(index, 1)
+      this.isLoading = true
+      axios.delete('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items/' + this.itemsList[index].id)
+        .then(data => {
+          this.getItemList()
+        }).catch(e => {
+          this.isLoading = false
+        })
     },
     editItem: function (item) {
       item.inEditMode = true
     },
     editItemComplete: function (item) {
       item.inEditMode = false
+      if (item.name && item.quantity) {
+        this.isLoading = true
+        axios.put('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items/' + item.id, {
+          name: item.name,
+          quantity: item.quantity
+        }, {
+          headers: {
+            'Access-Control-Request-Headers': 'accept, origin, content-type',
+            'Access-Control-Request-Method': 'GET, POST, OPTIONS, PUT, DELETE'
+          }
+        }).then(response => {
+          this.getItemList()
+        }).catch(e => {
+          this.isLoading = false
+        })
+      } else {
+
+      }
     }
+  },
+  beforeMount () {
+    this.getItemList()
   }
 }
 </script>
