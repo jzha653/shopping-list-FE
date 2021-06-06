@@ -26,15 +26,17 @@
           <Button icon="pi pi-user-edit" class="p-button-rounded p-button-secondary p-button-outlined" type="button"
                   v-show="!item.inEditMode" @click="editItem(item)"/>
           <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined"
-                  style="margin-left: 0.6rem" type="button"
+                  style="margin-left: 0.6rem" type="button" v-show="!item.inEditMode"
                   @click="removeItem(index)"/>
+          <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined"  v-show="item.inEditMode"
+                  style="margin-left: 0.6rem" type="button"
+                  @click="exitEdit(index)"/>
         </td>
       </tr>
       </tbody>
     </table>
     <h4>Add new item</h4>
-    <div class="p-grid" style="width: 50%;    margin-left: auto;
-    margin-right: auto;">
+    <div class="p-grid new-item-wrapper">
       <div class="p-col-3 p-sm-6" style="width: 5rem">
         Name
       </div>
@@ -45,7 +47,7 @@
         Quantity
       </div>
       <div class="p-col-3 p-sm-6" style="width: calc(50% - 5rem)">
-        <input type="number" v-model="quantity" class="checkbox" autofocus>
+        <input type="number" v-model="quantity" class="checkbox">
       </div>
     </div>
     <div>
@@ -53,6 +55,8 @@
     </div>
   </form>
   <ProgressSpinner v-show="isLoading"/>
+  <Toast position="top-right"/>
+  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script>
@@ -84,6 +88,11 @@ export default {
         this.isLoading = false
       }).catch(e => {
         this.isLoading = false
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Cannot load shopping list'
+        })
       })
     },
     addItem: function () {
@@ -101,8 +110,20 @@ export default {
           }
         }).then(response => {
           this.getItemList()
+          this.$toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: itemNameIN + ' has been added',
+            life: 3000
+          })
           this.clearAll()
         }).catch(e => {
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Cannot add ' + itemNameIN,
+            life: 3000
+          })
           this.isLoading = false
         })
       } else {
@@ -119,14 +140,38 @@ export default {
       this.clearQuantity()
       this.clearItemName()
     },
+    exitEdit (index) {
+      this.itemsList[index].inEditMode = false
+    },
     removeItem: function (index) {
-      this.isLoading = true
-      axios.delete('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items/' + this.itemsList[index].id)
-        .then(data => {
-          this.getItemList()
-        }).catch(e => {
-          this.isLoading = false
-        })
+      this.$confirm.require({
+        message: 'Are you sure you want to delete ' + this.itemsList[index].name + ' ?',
+        header: 'Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        accept: () => {
+          this.isLoading = true
+          axios.delete('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items/' + this.itemsList[index].id)
+            .then(data => {
+              this.getItemList()
+              this.$toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: this.itemsList[index].name + ' has been deleted',
+                life: 3000
+              })
+            }).catch(e => {
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: ' Cannot delete ' + this.itemsList[index].name,
+                life: 3000
+              })
+              this.isLoading = false
+            })
+        },
+        reject: () => {
+        }
+      })
     },
     editItem: function (item) {
       item.inEditMode = true
@@ -145,8 +190,20 @@ export default {
           }
         }).then(response => {
           this.getItemList()
+          this.$toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: item.name + ' has been updated',
+            life: 3000
+          })
         }).catch(e => {
           this.isLoading = false
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: ' cannot update ' + item.name,
+            life: 3000
+          })
         })
       } else {
 
@@ -189,5 +246,21 @@ td {
 
 #shopping-list {
   text-align: center;
+}
+
+.new-item-wrapper {
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media only screen and (max-width: 600px) {
+  .new-item-wrapper {
+    width: 100%;
+  }
+
+  #shopping-list-table {
+    width: 100%;
+  }
 }
 </style>
