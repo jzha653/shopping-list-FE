@@ -28,7 +28,7 @@
           <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined"
                   style="margin-left: 0.6rem" type="button" v-show="!item.inEditMode"
                   @click="removeItem(index)"/>
-          <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined"  v-show="item.inEditMode"
+          <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined" v-show="item.inEditMode"
                   style="margin-left: 0.6rem" type="button"
                   @click="exitEdit(index)"/>
         </td>
@@ -127,7 +127,13 @@ export default {
           this.isLoading = false
         })
       } else {
-
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Please provide name and quantity',
+          life: 3000
+        })
+        this.isLoading = false
       }
     },
     clearQuantity: function () {
@@ -206,7 +212,13 @@ export default {
           })
         })
       } else {
-
+        this.getItemList()
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Please provide item name and quantity',
+          life: 3000
+        })
       }
     }
   },
