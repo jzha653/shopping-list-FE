@@ -5,8 +5,9 @@ http://shopping-list-bucket-bananadoge.s3-website-ap-southeast-2.amazonaws.com
 
 
 ## Disable CORS to make HTTP POST/PUT function working
-
-![Screen Shot 2021-06-29 at 8 24 19 PM](https://user-images.githubusercontent.com/40383416/123763513-fdc5b580-d917-11eb-90de-f12647024cd1.png)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/40383416/123763513-fdc5b580-d917-11eb-90de-f12647024cd1.png">
+</p>
 
 ## Local setup
 ```
@@ -33,5 +34,3 @@ npm run lint
 npm run deploy
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
