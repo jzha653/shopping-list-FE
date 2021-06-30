@@ -65,7 +65,7 @@ import axios from 'axios'
 export default {
   name: 'ShoppingList',
   props: {},
-  data() {
+  data () {
     return {
       quantity: '',
       itemName: '',
@@ -77,12 +77,7 @@ export default {
   methods: {
     getItemList: async function () {
       this.isLoading = true
-      axios.get('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items', {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type": "application/json",
-        },
-      }).then(response => {
+      axios.get('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items').then(response => {
         this.itemsList = []
         for (const item of response?.data?.Items) {
           item.inEditMode = false
@@ -108,10 +103,9 @@ export default {
         axios.post('https://9yqwagzscg.execute-api.ap-southeast-2.amazonaws.com/items', {
           name: itemNameIN,
           quantity: quantityIN
-        },  {
+        }, {
           headers: {
-            "Content-Type": "application/json",
-          },
+          }
         }).then(response => {
           this.getItemList()
           this.$toast.add({
@@ -150,7 +144,7 @@ export default {
       this.clearQuantity()
       this.clearItemName()
     },
-    exitEdit(index) {
+    exitEdit (index) {
       this.itemsList[index].inEditMode = false
     },
     removeItem: function (index) {
@@ -170,14 +164,14 @@ export default {
                 life: 3000
               })
             }).catch(e => {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: ' Cannot delete ' + this.itemsList[index].name,
-              life: 3000
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: ' Cannot delete ' + this.itemsList[index].name,
+                life: 3000
+              })
+              this.isLoading = false
             })
-            this.isLoading = false
-          })
         },
         reject: () => {
         }
@@ -195,11 +189,7 @@ export default {
           quantity: item.quantity
         }, {
           headers: {
-            "Access-Control-Request-Headers":
-              "accept, origin, content-type",
-            "Access-Control-Request-Method":
-              "GET, POST, OPTIONS, PUT, DELETE",
-          },
+          }
         }).then(response => {
           this.getItemList()
           this.$toast.add({
@@ -228,7 +218,7 @@ export default {
       }
     }
   },
-  beforeMount() {
+  beforeMount () {
     this.getItemList()
   }
 }
